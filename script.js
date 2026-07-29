@@ -47,27 +47,18 @@ tabs.forEach(tab => {
   });
 });
 
-// ===== Booking form -> WhatsApp =====
-const WA_NUMBER = '221777489393';
+// ===== Booking form -> Espace client (compte.html) =====
 const form = document.getElementById('bookForm');
 form.addEventListener('submit', e => {
   e.preventDefault();
-  const name = document.getElementById('f-name').value.trim() || 'Client';
-  const barber = document.getElementById('f-barber').value;
-  const service = document.getElementById('f-service').value;
-  const date = document.getElementById('f-date').value;
-  const time = document.getElementById('f-time').value;
-
-  let msg = `Bonjour 221 SEN BARBER ! 🪒\n\n`;
-  msg += `Je souhaite réserver une coupe.\n`;
-  msg += `• Nom : ${name}\n`;
-  msg += `• Coiffeur : ${barber}\n`;
-  msg += `• Prestation : ${service}\n`;
-  if (date) msg += `• Jour : ${date}\n`;
-  if (time) msg += `• Heure : ${time}\n`;
-  msg += `\nMerci de me confirmer la disponibilité.`;
-
-  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+  const pending = {
+    barber: document.getElementById('f-barber').value,
+    service: document.getElementById('f-service').value,
+    date: document.getElementById('f-date').value,
+    time: document.getElementById('f-time').value,
+  };
+  localStorage.setItem('sb_pending_booking', JSON.stringify(pending));
+  window.location.href = 'compte.html';
 });
 
 // ===== Default date = today =====

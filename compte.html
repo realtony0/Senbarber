@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mon compte — 221 SEN BARBER</title>
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <span class="brand-mark">221</span>
+    <span class="brand-name">SEN<span class="amp">BARBER</span></span>
+  </a>
+  <div class="topbar-right">
+    <a href="index.html">← Accueil</a>
+    <button id="logoutBtn" class="hidden">Déconnexion</button>
+  </div>
+</header>
+
+<main class="wrap wrap-narrow" id="authView">
+  <div class="card">
+    <p class="eyebrow">Espace client</p>
+    <h2 id="authTitle">Connexion</h2>
+    <p class="sub" id="authSub">Connectez-vous pour réserver votre coupe.</p>
+
+    <div class="tabs">
+      <button id="tabLogin" class="active">Connexion</button>
+      <button id="tabRegister">Créer un compte</button>
+    </div>
+
+    <div class="alert alert-error" id="authError"></div>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+      <label>Téléphone
+        <input type="tel" id="l-phone" placeholder="77 748 93 93" autocomplete="tel" required />
+      </label>
+      <label>Code PIN (6 chiffres)
+        <input type="password" id="l-pin" class="pin-input" inputmode="numeric" maxlength="6" placeholder="••••••" required />
+      </label>
+      <button type="submit" class="btn btn-gold btn-full">Se connecter</button>
+      <p class="switch">Pas encore de compte ? <a id="goRegister">Créer un compte</a></p>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="registerForm" class="hidden">
+      <label>Nom complet
+        <input type="text" id="r-name" placeholder="Ex. Moussa Diop" autocomplete="name" required />
+      </label>
+      <label>Téléphone
+        <input type="tel" id="r-phone" placeholder="77 748 93 93" autocomplete="tel" required />
+      </label>
+      <div class="row2">
+        <label>Code PIN (6 chiffres)
+          <input type="password" id="r-pin" class="pin-input" inputmode="numeric" maxlength="6" placeholder="••••••" required />
+        </label>
+        <label>Confirmer le PIN
+          <input type="password" id="r-pin2" class="pin-input" inputmode="numeric" maxlength="6" placeholder="••••••" required />
+        </label>
+      </div>
+      <button type="submit" class="btn btn-gold btn-full">Créer mon compte</button>
+      <p class="switch">Déjà un compte ? <a id="goLogin">Se connecter</a></p>
+    </form>
+  </div>
+</main>
+
+<!-- ESPACE CONNECTÉ -->
+<main class="wrap" id="appView" style="display:none">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Mon espace</p>
+      <h2>Bonjour <span id="clientName"></span> 👋</h2>
+      <p class="who">Réservez et suivez vos rendez-vous.</p>
+    </div>
+    <a href="index.html" class="btn btn-ghost btn-sm">Voir le salon</a>
+  </div>
+
+  <div class="card">
+    <h2>Réserver un rendez-vous</h2>
+    <p class="sub">Votre demande arrive directement dans l'espace du salon.</p>
+    <div class="alert alert-ok" id="bookOk"></div>
+    <div class="alert alert-error" id="bookError"></div>
+    <form id="bookingForm">
+      <div class="row2">
+        <label>Coiffeur
+          <select id="b-barber">
+            <option>Peu importe</option>
+            <option>Bocar</option>
+            <option>Do</option>
+            <option>Vito</option>
+          </select>
+        </label>
+        <label>Prestation
+          <select id="b-service">
+            <optgroup label="Adultes">
+              <option>Coupe Dégradé / Taper Classique</option>
+              <option>Coupe + Wave Stylée</option>
+              <option>Coupe + Teinture + Barbe</option>
+              <option>Coupe Personnalisée</option>
+              <option>Coupe Européenne</option>
+              <option>Barbe Complète</option>
+              <option>Boule à Zéro</option>
+              <option>Contours Précis</option>
+            </optgroup>
+            <optgroup label="Adolescents">
+              <option>Coupe Dégradé / Taper Moderne (Ado)</option>
+              <option>Coupe + Wave Stylée (Ado)</option>
+            </optgroup>
+            <optgroup label="Enfants">
+              <option>Coupe Dégradé / Tapet (Enfant)</option>
+              <option>Coupe + Wave Stylée (Enfant)</option>
+            </optgroup>
+            <optgroup label="Soins & Formules">
+              <option>Shampoing + Massage</option>
+              <option>Teinte Couleur</option>
+              <option>Défrichage Pro</option>
+              <option>Installation Dreadlocks</option>
+              <option>Installation Sisterlocks</option>
+              <option>Soins de Visage</option>
+            </optgroup>
+          </select>
+        </label>
+      </div>
+      <div class="row2">
+        <label>Jour
+          <input type="date" id="b-date" required />
+        </label>
+        <label>Heure
+          <input type="time" id="b-time" required />
+        </label>
+      </div>
+      <label>Note (optionnel)
+        <input type="text" id="b-note" placeholder="Ex. dégradé bas, barbe courte…" />
+      </label>
+      <button type="submit" class="btn btn-gold btn-full">Confirmer la réservation</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Mes réservations</h2>
+    <div class="bk-list" id="myBookings"></div>
+  </div>
+</main>
+
+<script src="store.js"></script>
+<script src="account.js"></script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Administration — 221 SEN BARBER</title>
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <span class="brand-mark">221</span>
+    <span class="brand-name">SEN<span class="amp">BARBER</span></span>
+    <span style="color:var(--muted);font-size:.8rem;letter-spacing:.2em;margin-left:.4rem">ADMIN</span>
+  </a>
+  <div class="topbar-right">
+    <a href="index.html">← Site</a>
+    <button id="logoutBtn" class="hidden">Déconnexion</button>
+  </div>
+</header>
+
+<!-- LOGIN ADMIN -->
+<main class="wrap wrap-narrow" id="loginView">
+  <div class="card">
+    <p class="eyebrow">Espace réservé</p>
+    <h2>Administration du salon</h2>
+    <p class="sub">Entrez le mot de passe administrateur pour accéder aux réservations.</p>
+    <div class="alert alert-error" id="admError"></div>
+    <form id="adminLoginForm">
+      <label>Mot de passe
+        <input type="password" id="adm-pass" placeholder="••••••••" required />
+      </label>
+      <button type="submit" class="btn btn-gold btn-full">Entrer</button>
+    </form>
+  </div>
+</main>
+
+<!-- DASHBOARD -->
+<main class="wrap" id="dashView" style="display:none">
+  <p class="eyebrow">Tableau de bord</p>
+  <h2 style="font-size:2.4rem;margin-bottom:1.4rem">Réservations du salon</h2>
+
+  <div class="stats">
+    <div class="stat"><b id="st-total">0</b><span>Total réservations</span></div>
+    <div class="stat"><b id="st-attente">0</b><span>En attente</span></div>
+    <div class="stat"><b id="st-jour">0</b><span>Aujourd'hui</span></div>
+    <div class="stat"><b id="st-clients">0</b><span>Clients inscrits</span></div>
+  </div>
+
+  <div class="adm-tabs">
+    <button id="tabBookings" class="active">Réservations</button>
+    <button id="tabClients">Clients</button>
+  </div>
+
+  <!-- BOOKINGS PANEL -->
+  <section id="panelBookings">
+    <div class="filters">
+      <input type="search" id="f-search" placeholder="🔎 Rechercher un client…" />
+      <select id="f-barber">
+        <option value="">Tous les coiffeurs</option>
+        <option>Bocar</option><option>Do</option><option>Vito</option><option>Peu importe</option>
+      </select>
+      <select id="f-status">
+        <option value="">Tous les statuts</option>
+        <option>En attente</option><option>Confirmé</option><option>Terminé</option><option>Annulé</option>
+      </select>
+      <input type="date" id="f-date" />
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Client</th><th>Prestation</th><th>Coiffeur</th><th>Jour · Heure</th><th>Statut</th><th></th></tr>
+        </thead>
+        <tbody id="bookingsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CLIENTS PANEL -->
+  <section id="panelClients" class="hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th><th>Réservations</th></tr>
+        </thead>
+        <tbody id="clientsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="note-hint">Mode démo — données locales à cet appareil. Pour partager entre tous les appareils, activez Supabase (voir <a href="README-ADMIN.md">guide</a>).</p>
+</main>
+
+<script src="store.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
