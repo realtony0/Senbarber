@@ -19,44 +19,27 @@ Pour changer un mot de passe : dans `store.js`, remplacer le `passHash` du compt
 
 ---
 
-## ⚠️ Mode actuel : DÉMO (données locales)
-Aujourd'hui, les comptes et réservations sont stockés **dans le navigateur** (localStorage).
-➡️ **Conséquence** : une réservation faite sur le téléphone d'un client **n'apparaît PAS** sur l'écran du salon — chaque appareil a ses propres données.
+## ✅ Mode actuel : EN LIGNE (Supabase — partagé partout)
+Les comptes et réservations sont stockés sur **Supabase**. Une réservation faite
+sur le téléphone d'un client apparaît **immédiatement** dans l'espace du coiffeur
+concerné et dans celui du gérant, sur **n'importe quel appareil**.
 
-C'est parfait pour tester le rendu. Pour un usage réel, il faut une base de données partagée.
+- Projet Supabase : `dewnediinhuqyhjttzfk`
+- Le site utilise uniquement la **clé anon (publique)**. Les PIN et mots de passe
+  sont hachés côté serveur (bcrypt via `pgcrypto`) et ne sont jamais lisibles.
+- L'accès direct aux tables est bloqué (RLS) : tout passe par des fonctions
+  sécurisées (`register_client`, `login_client`, `create_booking`,
+  `staff_login`, `staff_bookings`, etc.).
 
----
+### 🔐 Sécurité — à faire
+1. **Régénérer** la clé `service_role` et le *access token* Supabase (ils ont été
+   partagés pendant la mise en place). La clé anon peut rester.
+2. **Changer les mots de passe** du personnel avant l'ouverture au public
+   (voir ci-dessous).
 
-## ✅ Passer en ligne réel (partagé partout) — Supabase (gratuit)
-
-1. Créer un compte sur https://supabase.com → **New project**.
-2. Dans **SQL Editor**, coller et exécuter le schéma ci-dessous.
-3. Dans **Settings → API**, copier `Project URL` et `anon public key`.
-4. Me transmettre ces 2 valeurs : je remplace la couche `store.js` par les appels Supabase (fonctions RPC sécurisées, PIN haché côté serveur avec `pgcrypto`).
-
-### Schéma SQL de base
+### Changer un mot de passe du personnel
+Dans le **SQL Editor** de Supabase, exécuter (exemple pour Bocar) :
 ```sql
-create extension if not exists pgcrypto;
-
-create table clients (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  phone text unique not null,
-  pin_hash text not null,
-  created_at timestamptz default now()
-);
-
-create table bookings (
-  id uuid primary key default gen_random_uuid(),
-  client_id uuid references clients(id) on delete cascade,
-  client_name text, client_phone text,
-  barber text, service text, date date, time text, note text,
-  status text default 'En attente',
-  created_at timestamptz default now()
-);
-
--- Accès direct bloqué : tout passe par des fonctions sécurisées (RPC)
-alter table clients enable row level security;
-alter table bookings enable row level security;
+update staff set pass_hash = crypt('NOUVEAU_MOT_DE_PASSE', gen_salt('bf'))
+where name = 'Bocar';
 ```
-(Les fonctions RPC `register_client`, `login_client`, `create_booking`, `admin_*` seront ajoutées lors du branchement.)

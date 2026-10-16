@@ -3,9 +3,8 @@ const S = window.SBStore;
 const $ = id => document.getElementById(id);
 const BARBERS = ['Bocar', 'Do', 'Vito', 'Peu importe'];
 const STATUSES = ['En attente', 'Confirmé', 'Terminé', 'Annulé'];
-function statusClass(s) {
-  return { 'En attente': 'attente', 'Confirmé': 'confirme', 'Terminé': 'termine', 'Annulé': 'annule' }[s] || 'attente';
-}
+let DATA = { bookings: [], clients: [] };
+
 function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function fmtDT(d, t) {
   const dt = new Date(d + 'T00:00');
@@ -18,12 +17,13 @@ function fmtCreated(iso) {
 /* ---- login ---- */
 $('adminLoginForm').addEventListener('submit', async e => {
   e.preventDefault();
+  const btn = e.submitter; if (btn) btn.disabled = true;
   try {
     await S.staffLogin($('adm-who').value, $('adm-pass').value);
-    enterDash();
+    await enterDash();
   } catch (err) {
     const a = $('admError'); a.textContent = err.message; a.classList.add('show');
-  }
+  } finally { if (btn) btn.disabled = false; }
 });
 $('logoutBtn').onclick = () => { S.staffLogout(); location.reload(); };
 
@@ -42,12 +42,12 @@ function toggleTab(bookings) {
   $(id).addEventListener('input', renderBookings);
 });
 
-/* ---- render bookings ---- */
+/* ---- render bookings (depuis le cache DATA) ---- */
 function renderBookings() {
   const manager = S.isManager();
   const q = $('f-search').value.trim().toLowerCase();
   const fb = $('f-barber').value, fs = $('f-status').value, fd = $('f-date').value;
-  let rows = S.staffBookings();
+  let rows = DATA.bookings;
   if (q) rows = rows.filter(b => (b.clientName + ' ' + b.clientPhone).toLowerCase().includes(q));
   if (manager && fb) rows = rows.filter(b => b.barber === fb);
   if (fs) rows = rows.filter(b => b.status === fs);
@@ -74,29 +74,28 @@ function renderBookings() {
   }).join('');
 
   body.querySelectorAll('select.st').forEach(sel => {
-    sel.onchange = () => { S.setBookingStatus(sel.dataset.id, sel.value); renderStats(); };
+    sel.onchange = async () => { sel.disabled = true; await S.setBookingStatus(sel.dataset.id, sel.value); await renderAll(); };
   });
   body.querySelectorAll('select.bb').forEach(sel => {
-    sel.onchange = () => { S.setBookingBarber(sel.dataset.id, sel.value); renderAll(); };
+    sel.onchange = async () => { sel.disabled = true; await S.setBookingBarber(sel.dataset.id, sel.value); await renderAll(); };
   });
   body.querySelectorAll('button.del').forEach(btn => {
-    btn.onclick = () => {
-      if (confirm('Supprimer cette réservation ?')) { S.deleteBooking(btn.dataset.id); renderAll(); }
+    btn.onclick = async () => {
+      if (!confirm('Supprimer cette réservation ?')) return;
+      btn.disabled = true; await S.deleteBooking(btn.dataset.id); await renderAll();
     };
   });
 }
 
 /* ---- render clients ---- */
 function renderClients() {
-  const clients = S.staffClients();
-  const bookings = S.staffBookings();
   const body = $('clientsBody');
-  if (!clients.length) {
+  if (!DATA.clients.length) {
     body.innerHTML = '<tr><td colspan="4"><p class="empty">Aucun client.</p></td></tr>';
     return;
   }
-  body.innerHTML = clients.map(c => {
-    const n = bookings.filter(b => b.clientId === c.id).length;
+  body.innerHTML = DATA.clients.map(c => {
+    const n = DATA.bookings.filter(b => b.clientId === c.id).length;
     return `<tr>
       <td class="cname">${esc(c.name)}</td>
       <td><a href="tel:${esc(c.phone)}" style="color:inherit">${esc(c.phone)}</a></td>
@@ -108,17 +107,20 @@ function renderClients() {
 
 /* ---- stats ---- */
 function renderStats() {
-  const b = S.staffBookings();
   const today = new Date().toISOString().split('T')[0];
-  $('st-total').textContent = b.length;
-  $('st-attente').textContent = b.filter(x => x.status === 'En attente').length;
-  $('st-jour').textContent = b.filter(x => x.date === today).length;
-  $('st-clients').textContent = S.staffClients().length;
+  $('st-total').textContent = DATA.bookings.length;
+  $('st-attente').textContent = DATA.bookings.filter(x => x.status === 'En attente').length;
+  $('st-jour').textContent = DATA.bookings.filter(x => x.date === today).length;
+  $('st-clients').textContent = DATA.clients.length;
 }
 
-function renderAll() { renderStats(); renderBookings(); renderClients(); }
+async function renderAll() {
+  const [bookings, clients] = await Promise.all([S.staffBookings(), S.staffClients()]);
+  DATA.bookings = bookings; DATA.clients = clients;
+  renderStats(); renderBookings(); renderClients();
+}
 
-function enterDash() {
+async function enterDash() {
   const me = S.currentStaff();
   if (!me) return;
   const manager = me.role === 'gerant';
@@ -127,7 +129,6 @@ function enterDash() {
   $('dashView').style.display = '';
   $('logoutBtn').classList.remove('hidden');
 
-  // Titres & libellés selon le rôle
   if (manager) {
     $('dashEyebrow').textContent = 'Gérant · ' + me.name;
     $('dashTitle').textContent = 'Réservations du salon';
@@ -139,9 +140,9 @@ function enterDash() {
     $('dashTitle').textContent = 'Mes rendez-vous';
     $('lb-total').textContent = 'Mes réservations';
     $('lb-clients').textContent = 'Mes clients';
-    $('f-barber').style.display = 'none'; // un coiffeur ne voit que les siens
+    $('f-barber').style.display = 'none';
   }
-  renderAll();
+  await renderAll();
 }
 
 /* auto-enter if already logged */

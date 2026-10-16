@@ -62,10 +62,11 @@ loginForm.addEventListener('submit', async e => {
 $('logoutBtn').onclick = () => { S.logoutClient(); location.reload(); };
 
 /* ---- booking ---- */
-$('bookingForm').addEventListener('submit', e => {
+$('bookingForm').addEventListener('submit', async e => {
   e.preventDefault();
+  const btn = e.submitter; if (btn) btn.disabled = true;
   try {
-    S.createBooking({
+    await S.createBooking({
       barber: $('b-barber').value,
       service: $('b-service').value,
       date: $('b-date').value,
@@ -74,13 +75,15 @@ $('bookingForm').addEventListener('submit', e => {
     });
     showAlert($('bookOk'), '✅ Réservation envoyée au salon ! Vous recevrez une confirmation.', true);
     $('b-note').value = '';
-    renderBookings();
+    await renderBookings();
   } catch (err) { showAlert($('bookError'), err.message); }
+  finally { if (btn) btn.disabled = false; }
 });
 
-function renderBookings() {
-  const list = S.myBookings();
+async function renderBookings() {
   const box = $('myBookings');
+  box.innerHTML = '<p class="empty">Chargement…</p>';
+  const list = await S.myBookings();
   if (!list.length) { box.innerHTML = '<p class="empty">Aucune réservation pour le moment.</p>'; return; }
   box.innerHTML = list.map(b => {
     const d = fmtDate(b.date);
@@ -96,7 +99,7 @@ function renderBookings() {
 }
 
 /* ---- enter logged-in state ---- */
-function enterApp() {
+async function enterApp() {
   const c = S.currentClient();
   if (!c) return;
   $('authView').style.display = 'none';
@@ -108,7 +111,7 @@ function enterApp() {
   $('b-date').min = t.toISOString().split('T')[0];
   if (!$('b-date').value) $('b-date').value = t.toISOString().split('T')[0];
   applyPending();
-  renderBookings();
+  await renderBookings();
 }
 
 /* apply a booking pre-selection coming from the main site */
