@@ -25,14 +25,22 @@
   </div>
 </header>
 
-<!-- LOGIN ADMIN -->
+<!-- LOGIN STAFF -->
 <main class="wrap wrap-narrow" id="loginView">
   <div class="card">
     <p class="eyebrow">Espace réservé</p>
-    <h2>Administration du salon</h2>
-    <p class="sub">Entrez le mot de passe administrateur pour accéder aux réservations.</p>
+    <h2>Connexion personnel</h2>
+    <p class="sub">Chaque coiffeur accède à ses rendez-vous. Le gérant voit tout le salon.</p>
     <div class="alert alert-error" id="admError"></div>
     <form id="adminLoginForm">
+      <label>Qui êtes-vous ?
+        <select id="adm-who">
+          <option value="Gérant">Gérant (accès complet)</option>
+          <option value="Bocar">Bocar — coiffeur</option>
+          <option value="Do">Do — coiffeur</option>
+          <option value="Vito">Vito — coiffeur</option>
+        </select>
+      </label>
       <label>Mot de passe
         <input type="password" id="adm-pass" placeholder="••••••••" required />
       </label>
@@ -43,14 +51,14 @@
 
 <!-- DASHBOARD -->
 <main class="wrap" id="dashView" style="display:none">
-  <p class="eyebrow">Tableau de bord</p>
-  <h2 style="font-size:2.4rem;margin-bottom:1.4rem">Réservations du salon</h2>
+  <p class="eyebrow" id="dashEyebrow">Tableau de bord</p>
+  <h2 id="dashTitle" style="font-size:2.4rem;margin-bottom:1.4rem">Réservations du salon</h2>
 
   <div class="stats">
-    <div class="stat"><b id="st-total">0</b><span>Total réservations</span></div>
+    <div class="stat"><b id="st-total">0</b><span id="lb-total">Total réservations</span></div>
     <div class="stat"><b id="st-attente">0</b><span>En attente</span></div>
     <div class="stat"><b id="st-jour">0</b><span>Aujourd'hui</span></div>
-    <div class="stat"><b id="st-clients">0</b><span>Clients inscrits</span></div>
+    <div class="stat"><b id="st-clients">0</b><span id="lb-clients">Clients inscrits</span></div>
   </div>
 
   <div class="adm-tabs">

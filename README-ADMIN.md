@@ -2,12 +2,20 @@
 
 ## Accès
 - **Espace client** : `compte.html` (inscription / connexion avec téléphone + PIN 6 chiffres, réservation, suivi).
-- **Administration** : `admin.html` — voir et gérer toutes les réservations + liste des clients.
+- **Espaces personnel** : `admin.html` — chacun choisit son espace et entre son mot de passe.
 
-### Mot de passe admin
-Par défaut : **`senbarber221`**
-Pour le changer : dans `store.js`, remplacer `ADMIN_PASS_HASH` par le hash SHA-256 de votre nouveau mot de passe.
-(Générer un hash : sur https://emn178.github.io/online-tools/sha256.html — collez le mot de passe, copiez le résultat.)
+### Comptes du personnel (mots de passe par défaut — À CHANGER)
+| Espace | Accès | Mot de passe |
+|---|---|---|
+| **Gérant** | voit TOUT le salon, assigne/supprime | `gerant221` |
+| **Bocar** | voit uniquement SES rendez-vous | `bocar221` |
+| **Do** | voit uniquement SES rendez-vous | `do221` |
+| **Vito** | voit uniquement SES rendez-vous | `vito221` |
+
+- Un **coiffeur** ne voit que les réservations qui lui sont assignées + ses clients, et peut changer leur statut.
+- Le **gérant** voit toutes les réservations, peut **réassigner** un rendez-vous à un autre coiffeur, changer les statuts et supprimer.
+
+Pour changer un mot de passe : dans `store.js`, remplacer le `passHash` du compte par le hash SHA-256 du nouveau mot de passe (ex. sur https://emn178.github.io/online-tools/sha256.html).
 
 ---
 

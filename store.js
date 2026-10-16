@@ -14,12 +14,19 @@ const SB = {
   CLIENTS: 'sb_clients',
   BOOKINGS: 'sb_bookings',
   SESSION: 'sb_session',
-  ADMIN: 'sb_admin_session',
+  STAFF: 'sb_staff_session',
 };
 
-/* Mot de passe admin par défaut : "senbarber221"
-   (hash SHA-256 — le mot de passe en clair n'est jamais stocké). */
-const ADMIN_PASS_HASH = '002ec5c5567892c20ce42230b7bea77d712ae286a89a096f7e5d2945889a77c5';
+/* Comptes du personnel. Chaque espace a son mot de passe (haché SHA-256,
+   jamais stocké en clair). Mots de passe par défaut — à changer :
+   Gérant = gerant221 · Bocar = bocar221 · Do = do221 · Vito = vito221
+   Pour changer : remplacer le hash (générer sur un outil SHA-256 en ligne). */
+const STAFF = [
+  { name: 'Gérant', role: 'gerant', passHash: 'e374559317f11e637decec7eefe303159261ab4f95dfbeac105a34cf8fd7a82d' },
+  { name: 'Bocar',  role: 'barber', passHash: 'cddf46ba0b886bab1948e183574c0f70408cc695e46d74b84b1e490aa90e1554' },
+  { name: 'Do',     role: 'barber', passHash: '85e37afef3c96615083587ffc659ed31acfb8e79b0611bac9025bec19b711d55' },
+  { name: 'Vito',   role: 'barber', passHash: 'c390415e5278df333f820c132882537ec525a6a73c8be4d80dff4be6266d2bfe' },
+];
 
 /* --- utils --- */
 async function sha256(str) {
@@ -106,26 +113,53 @@ function myBookings() {
     .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
 }
 
-/* ===================== ADMIN ===================== */
-async function adminLogin(pass) {
-  if ((await sha256(pass || '')) !== ADMIN_PASS_HASH)
-    throw new Error('Mot de passe administrateur incorrect.');
-  localStorage.setItem(SB.ADMIN, '1');
-  return true;
-}
-const adminLogged = () => localStorage.getItem(SB.ADMIN) === '1';
-const adminLogout = () => localStorage.removeItem(SB.ADMIN);
+/* ===================== STAFF (gérant + coiffeurs) ===================== */
+function staffList() { return STAFF.map(s => ({ name: s.name, role: s.role })); }
 
-function allBookings() {
-  return _read(SB.BOOKINGS).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+async function staffLogin(name, pass) {
+  const s = STAFF.find(x => x.name === name);
+  if (!s) throw new Error('Compte introuvable.');
+  if ((await sha256(pass || '')) !== s.passHash)
+    throw new Error('Mot de passe incorrect.');
+  localStorage.setItem(SB.STAFF, JSON.stringify({ name: s.name, role: s.role }));
+  return { name: s.name, role: s.role };
 }
-function allClients() {
-  return _read(SB.CLIENTS).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+function currentStaff() {
+  try { return JSON.parse(localStorage.getItem(SB.STAFF)) || null; }
+  catch (_) { return null; }
+}
+function staffLogout() { localStorage.removeItem(SB.STAFF); }
+const isManager = () => (currentStaff() || {}).role === 'gerant';
+
+/* Réservations visibles selon le rôle :
+   - gérant : toutes
+   - coiffeur : seulement les siennes (barber === son nom) */
+function staffBookings() {
+  const me = currentStaff();
+  let rows = _read(SB.BOOKINGS).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  if (me && me.role === 'barber') rows = rows.filter(b => b.barber === me.name);
+  return rows;
+}
+/* Clients visibles : gérant = tous ; coiffeur = ceux qui ont réservé chez lui */
+function staffClients() {
+  const me = currentStaff();
+  const clients = _read(SB.CLIENTS).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  if (me && me.role === 'barber') {
+    const ids = new Set(_read(SB.BOOKINGS).filter(b => b.barber === me.name).map(b => b.clientId));
+    return clients.filter(c => ids.has(c.id));
+  }
+  return clients;
 }
 function setBookingStatus(id, status) {
   const bookings = _read(SB.BOOKINGS);
   const b = bookings.find(x => x.id === id);
   if (b) { b.status = status; _write(SB.BOOKINGS, bookings); }
+}
+function setBookingBarber(id, barber) {
+  if (!isManager()) return; // seul le gérant peut réassigner
+  const bookings = _read(SB.BOOKINGS);
+  const b = bookings.find(x => x.id === id);
+  if (b) { b.barber = barber; _write(SB.BOOKINGS, bookings); }
 }
 function deleteBooking(id) {
   _write(SB.BOOKINGS, _read(SB.BOOKINGS).filter(x => x.id !== id));
@@ -134,6 +168,6 @@ function deleteBooking(id) {
 window.SBStore = {
   registerClient, loginClient, currentClient, logoutClient,
   createBooking, myBookings,
-  adminLogin, adminLogged, adminLogout,
-  allBookings, allClients, setBookingStatus, deleteBooking,
+  staffList, staffLogin, currentStaff, staffLogout, isManager,
+  staffBookings, staffClients, setBookingStatus, setBookingBarber, deleteBooking,
 };
