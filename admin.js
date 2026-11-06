@@ -115,9 +115,13 @@ function renderStats() {
 }
 
 async function renderAll() {
-  const [bookings, clients] = await Promise.all([S.staffBookings(), S.staffClients()]);
-  DATA.bookings = bookings; DATA.clients = clients;
-  renderStats(); renderBookings(); renderClients();
+  try {
+    const [bookings, clients] = await Promise.all([S.staffBookings(), S.staffClients()]);
+    DATA.bookings = bookings; DATA.clients = clients;
+    renderStats(); renderBookings(); renderClients();
+  } catch (err) {
+    $('bookingsBody').innerHTML = '<tr><td colspan="6"><p class="empty">⚠️ Service momentanément indisponible. Vérifiez votre connexion et réessayez.</p></td></tr>';
+  }
 }
 
 async function enterDash() {

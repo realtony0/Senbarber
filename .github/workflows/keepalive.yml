@@ -1,0 +1,32 @@
+name: Garder Supabase actif
+
+# Empêche le projet Supabase gratuit de se mettre en veille (pause auto après ~1 semaine d'inactivité).
+# Ping la base chaque jour : un appel suffit à compter comme activité.
+# La clé utilisée est la clé "anon" PUBLIQUE (déjà présente dans le site) — aucun secret.
+
+on:
+  schedule:
+    - cron: '23 6 * * *'   # tous les jours à 06:23 UTC
+  workflow_dispatch:        # permet aussi un déclenchement manuel
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase (RPC login_client)
+        run: |
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "https://dewnediinhuqyhjttzfk.supabase.co/rest/v1/rpc/login_client" \
+            -H "apikey: ${ANON}" \
+            -H "Authorization: Bearer ${ANON}" \
+            -H "Content-Type: application/json" \
+            -d '{"p_phone":"keepalive","p_pin":"000000"}')
+          echo "Réponse Supabase: HTTP $CODE"
+          # 400 = la fonction a répondu (compte introuvable) → la base est bien active
+          if [ "$CODE" = "400" ] || [ "$CODE" = "200" ]; then
+            echo "✅ Base active."
+          else
+            echo "⚠️ Réponse inattendue ($CODE) — à surveiller."
+          fi
+        env:
+          ANON: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRld25lZGlpbmh1cXloanR0emZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwOTc3NjUsImV4cCI6MjEwNzY3Mzc2NX0.28j4fBhFuzIjSFxmb-eJ847f8u91fNCkZY8RgZiVt2I

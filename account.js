@@ -83,7 +83,9 @@ $('bookingForm').addEventListener('submit', async e => {
 async function renderBookings() {
   const box = $('myBookings');
   box.innerHTML = '<p class="empty">Chargement…</p>';
-  const list = await S.myBookings();
+  let list;
+  try { list = await S.myBookings(); }
+  catch (err) { box.innerHTML = '<p class="empty">⚠️ Service momentanément indisponible. Réessayez dans un instant.</p>'; return; }
   if (!list.length) { box.innerHTML = '<p class="empty">Aucune réservation pour le moment.</p>'; return; }
   box.innerHTML = list.map(b => {
     const d = fmtDate(b.date);
